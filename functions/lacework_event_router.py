@@ -6,15 +6,23 @@ This function will route a Lacework event to the appropriate function for remedi
 """
 
 import json
+import logging
 
 import iam.user_disable_login_profile
 import iam.user_disable_unused_access_key
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def route_event(event):
     """
     A function to route the Lacework event to the appropriate remediation
     """
+
+    # Check for simple LW Integration TestEvent
+    if event.get("EVENT_CATEGORY") == "TestEvent":
+        logger.info('\nLW Test Event detected: %s', event)
+        return
 
     # Make sure the event is a compliance event
     if event.get("EVENT_CATEGORY") == "Compliance":
@@ -68,7 +76,8 @@ def event_handler(event, context):
     # Iterate through each record in the message
     for record in event.get('Records', []):
 
-        print(record["body"])
+        logger.debug('\nEvent Record Body: %s', record["body"])
+        # print(record["body"])
 
         # Get the record details if possible
         record_details = json.loads(record.get('body', {})).get('detail')
