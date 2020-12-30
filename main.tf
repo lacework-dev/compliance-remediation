@@ -2,6 +2,7 @@ locals {
   event_bus_name       = length(var.event_bus_name) > 0 ? var.event_bus_name : "${var.lacework_resource_prefix}-event-bus-${random_id.uniq.hex}"
   event_rule_name      = length(var.event_rule_name) > 0 ? var.event_rule_name : "${var.lacework_resource_prefix}-event-rule-${random_id.uniq.hex}"
   lambda_function_name = length(var.lambda_function_name) > 0 ? var.lambda_function_name : "${var.lacework_resource_prefix}-function-${random_id.uniq.hex}"
+  lambda_role_name     = length(var.lambda_role_name) > 0 ? var.lambda_role_name : "${var.lacework_resource_prefix}-lambda-role-${random_id.uniq.hex}"
   sqs_queue_name       = length(var.sqs_queue_name) > 0 ? var.sqs_queue_name : "${var.lacework_resource_prefix}-sqs-${random_id.uniq.hex}"
 }
 
@@ -94,13 +95,13 @@ resource "aws_lambda_event_source_mapping" "lacework_events" {
   event_source_arn = aws_sqs_queue.lacework_events.arn
   function_name    = aws_lambda_function.event_router.arn
 
-  depends_on = [aws_iam_role_policy.lambda_policy]
+  depends_on = [aws_iam_role_policy.lambda_sqs_policy]
 }
 
 # IAM role which dictates what other AWS services the Lambda function
 # may access.
 resource "aws_iam_role" "lambda_execution" {
-  name = "lacework_remediation_lambda_role"
+  name = local.lambda_role_name
 
   assume_role_policy = <<EOF
 {
@@ -121,7 +122,7 @@ EOF
 
 # Allow the Lambda Function to read messages from the created SQS Queue
 # Allow the Lambda Function to write logs
-resource "aws_iam_role_policy" "lambda_policy" {
+resource "aws_iam_role_policy" "lambda_sqs_policy" {
   name = "lacework_remediation_sqs_log_access"
   role = aws_iam_role.lambda_execution.id
 
@@ -148,6 +149,33 @@ resource "aws_iam_role_policy" "lambda_policy" {
       "Effect": "Allow",
       "Resource": "*",
       "Sid": "LambdaAccessLogs"
+    }
+  ]
+}
+EOF
+}
+
+# Allow the Lambda Function to change IAM users
+resource "aws_iam_role_policy" "lambda_iam_policy" {
+  name = "lacework_remediation_iam_access"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "iam:ListAccessKeys",
+        "iam:UpdateAccessKey",
+        "iam:GetAccessKeyLastUsed",
+        "iam:GetLoginProfile",
+        "iam:UpdateLoginProfile",
+        "iam:DeleteLoginProfile"
+      ],
+      "Effect": "Allow",
+      "Resource": "*",
+      "Sid": "LambdaAccessIAM"
     }
   ]
 }

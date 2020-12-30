@@ -34,6 +34,12 @@ variable "lambda_function_name" {
   description = "The desired name of the Lacework event router lambda function."
 }
 
+variable "lambda_role_name" {
+  type        = string
+  default     = ""
+  description = "The desired IAM role name for the Lacework remediation lambda function."
+}
+
 variable "sqs_queue_name" {
   type        = string
   default     = ""

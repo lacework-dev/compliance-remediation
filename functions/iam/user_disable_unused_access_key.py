@@ -10,7 +10,6 @@ import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime, timezone
 
-MAX_ITEMS = 200
 MAX_UNUSED_DAYS = 90
 
 
@@ -46,11 +45,10 @@ def run_action(entity):
             username = split_name[1]
 
             # Get all access keys
-            access_keys = iam.list_access_keys(UserName=username,
-                                               MaxItems=MAX_ITEMS)["AccessKeyMetadata"]
+            paginator = iam.get_paginator('list_access_keys')
 
             # Iterate through all access keys
-            for access_key in access_keys:
+            for access_key in paginator.paginate(UserName=username)["AccessKeyMetadata"]:
 
                 # Get access key id
                 access_key_id = access_key["AccessKeyId"]
