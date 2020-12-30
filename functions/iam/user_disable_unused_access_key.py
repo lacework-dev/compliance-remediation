@@ -69,7 +69,7 @@ def run_action(entity):
                     # Calc the number of days since last use
                     days_from_last_use = get_days_from_last_use(access_key, iam)
 
-                    # if the access key is not used for more than 90 days it will be turn inactive
+                    # If the access key is not used for more than 90 days it will be deactivated
                     if days_from_last_use > MAX_UNUSED_DAYS:
 
                         # Deactivate access key
