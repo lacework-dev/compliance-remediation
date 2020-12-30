@@ -28,6 +28,16 @@ output "lambda_function_arn" {
   description = "Lambda Function ARN"
 }
 
+output "lambda_role_name" {
+  value       = local.lambda_role_name
+  description = "Lambda IAM Role Name"
+}
+
+output "lambda_role_arn" {
+  value       = aws_iam_role.lambda_execution.arn
+  description = "Lambda IAM Role ARN"
+}
+
 output "sqs_queue_name" {
   value       = local.sqs_queue_name
   description = "SQS Queue Name"

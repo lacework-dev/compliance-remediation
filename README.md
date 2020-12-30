@@ -14,6 +14,7 @@ Terraform module for remediating common non-compliant resources in AWS as detect
 | lacework_integration_name | The name to use for the Alert Channel integration in Lacework | `string` | "Compliance Events to CloudWatch" | no |
 | lacework_resource_prefix | The name prefix to use for resources provisioned by the module | `string` | "lacework-remediation" | no |
 | lambda_function_name | The desired name of the Lacework event router lambda function | `string` | "" | no |
+| lambda_role_name | The desired IAM role name for the Lacework remediation lambda function | `string` | "" | no |
 | sqs_queue_name | The desired name of the SQS event queue | `string` | "" | no |
 
 ## Outputs
@@ -26,5 +27,7 @@ Terraform module for remediating common non-compliant resources in AWS as detect
 | event_rule_arn | EventBridge Event Rule ARN |
 | lambda_function_name | Lambda Function Name |
 | lambda_function_arn | Lambda Function ARN |
+| lambda_role_name | Lambda IAM Role Name |
+| lambda_role_arn | Lambda IAM Role ARN |
 | sqs_queue_name | SQS Queue Name |
 | sqs_queue_arn | SQS Queue ARN |
