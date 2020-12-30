@@ -78,7 +78,7 @@ def route_event(event):
 
 def event_handler(event, context):
     """
-    A funciton to receive the generated Lacework event.
+    A function to receive the generated Lacework event.
     """
 
     logger.debug('## EVENT')
