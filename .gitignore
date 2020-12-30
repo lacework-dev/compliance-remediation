@@ -39,8 +39,16 @@ override.tf.json
 # vim
 *.swp
 
+# Test artifacts
+.cache/
+.pytest_cache/
+
+# Byte-compiled / optimized files
+*.py[cod]
+
 /.idea/
 .DS_Store
 
+.env
 venv/
 .vscode/

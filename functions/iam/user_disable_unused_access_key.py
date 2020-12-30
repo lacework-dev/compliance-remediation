@@ -5,10 +5,14 @@ Lacework Remediation: iam_user_disable_unused_access_key.py
 This function will disable any unused access keys for a user.
 """
 
+import logging
+
 import boto3
 
 from botocore.exceptions import ClientError
 from datetime import datetime, timezone
+
+logger = logging.getLogger()
 
 MAX_UNUSED_DAYS = 90
 
@@ -33,7 +37,7 @@ def get_days_from_last_use(access_key, iam_client):
 
 
 def run_action(entity):
-    output = "Initiating deactivation of unused access keys.\n"
+    logger.info("Initiating deactivation of unused access keys.")
 
     # Create an IAM client
     iam = boto3.client("iam")
@@ -48,29 +52,40 @@ def run_action(entity):
             paginator = iam.get_paginator('list_access_keys')
 
             # Iterate through all access keys
-            for access_key in paginator.paginate(UserName=username)["AccessKeyMetadata"]:
+            for access_keys in paginator.paginate(UserName=username):
 
-                # Get access key id
-                access_key_id = access_key["AccessKeyId"]
+                # Get a list of Access Key metadata
+                access_keys = access_keys["AccessKeyMetadata"]
 
-                # Calc the number of days since last use
-                days_from_last_use = get_days_from_last_use(access_key, iam)
+                # Loop through each access key
+                for access_key in access_keys:
 
-                # if the access key is not used for more than 90 days it will be turn inactive
-                if days_from_last_use > MAX_UNUSED_DAYS:
+                    logger.info("### ACCESS KEY")
+                    logger.info(access_key)
 
-                    # Deactivate access key
-                    iam.update_access_key(
-                        UserName=username,
-                        AccessKeyId=access_key_id,
-                        Status="Inactive"
-                    )
-                    output += f"IAM User '{username}' access key with id '{access_key_id}' was " \
-                              f"deactivated due of being unused for {days_from_last_use} days.\n"
+                    # Get access key id
+                    access_key_id = access_key["AccessKeyId"]
+
+                    # Calc the number of days since last use
+                    days_from_last_use = get_days_from_last_use(access_key, iam)
+
+                    # if the access key is not used for more than 90 days it will be turn inactive
+                    if days_from_last_use > MAX_UNUSED_DAYS:
+
+                        # Deactivate access key
+                        iam.update_access_key(
+                            UserName=username,
+                            AccessKeyId=access_key_id,
+                            Status="Inactive"
+                        )
+                        logger.info(f"IAM User '{username}' access key with id '{access_key_id}' "
+                                    f"was deactivated due of being unused for {days_from_last_use} "
+                                    "days.")
+                    else:
+                        logger.info(f"IAM User '{username}' access key with id '{access_key_id}' "
+                                    f"was used {days_from_last_use} days ago.")
         else:
-            output += f"Username {entity} was not properly parsed.\n"
+            logger.warning(f"Username {entity} was not properly parsed.")
 
     except ClientError as e:
-        output += f"Unexpected error: {e}."
-
-    return output
+        logger.error(f"Unexpected error: {e}.")

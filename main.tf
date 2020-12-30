@@ -166,12 +166,13 @@ resource "aws_iam_role_policy" "lambda_iam_policy" {
   "Statement": [
     {
       "Action": [
-        "iam:ListAccessKeys",
-        "iam:UpdateAccessKey",
+        "iam:DeleteLoginProfile",
         "iam:GetAccessKeyLastUsed",
         "iam:GetLoginProfile",
-        "iam:UpdateLoginProfile",
-        "iam:DeleteLoginProfile"
+        "iam:GetUsers",
+        "iam:ListAccessKeys",
+        "iam:UpdateAccessKey",
+        "iam:UpdateLoginProfile"
       ],
       "Effect": "Allow",
       "Resource": "*",
