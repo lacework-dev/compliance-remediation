@@ -37,3 +37,4 @@ def run_action(entity):
 
     except ClientError as e:
         logger.error(f"Unexpected error: {e}.")
+        return e
