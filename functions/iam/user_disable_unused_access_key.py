@@ -28,7 +28,7 @@ def get_days_from_last_use(access_key, iam_client):
     access_key_last_use = access_key_last_use["AccessKeyLastUsed"]
 
     # Check if the access key is ever been used, otherwise use create date
-    if 'LastUsedDate' in access_key_last_use:
+    if "LastUsedDate" in access_key_last_use:
         # Return days since last use
         return (curr_time - access_key_last_use["LastUsedDate"]).days
     else:
@@ -49,7 +49,7 @@ def run_action(entity):
             username = split_name[1]
 
             # Get all access keys
-            paginator = iam.get_paginator('list_access_keys')
+            paginator = iam.get_paginator("list_access_keys")
 
             # Iterate through all access keys
             for access_keys in paginator.paginate(UserName=username):
@@ -89,3 +89,4 @@ def run_action(entity):
 
     except ClientError as e:
         logger.error(f"Unexpected error: {e}.")
+        return e
