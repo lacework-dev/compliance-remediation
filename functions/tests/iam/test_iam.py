@@ -5,13 +5,16 @@ Tests for Lacework Event Router.
 
 import boto3
 
+from laceworkremediation.lacework_event_router import event_handler
+
 from moto import mock_iam
-from test_event_data import (
+from tests.test_event_data import (
   test_compliance_event_no_action,
   test_compliance_event_aws_1_3,
   test_compliance_event_aws_1_4
 )
-from lacework_event_router import event_handler
+
+NUM_ACCESS_KEYS = 20
 
 
 @mock_iam
@@ -22,7 +25,10 @@ def create_user():
     iam_client = boto3.client("iam")
 
     iam_client.create_user(UserName=username)
-    iam_client.create_access_key(UserName=username)
+
+    for key in range(NUM_ACCESS_KEYS):
+        iam_client.create_access_key(UserName=username)
+
     iam_client.create_login_profile(
         UserName=username,
         Password="testpassword",
@@ -38,7 +44,7 @@ def test_lambda_handler_no_action():
     except Exception as e:
         print(e)
 
-    assert response is None
+    assert response["status"] == "ok"
 
 
 @mock_iam
@@ -51,7 +57,7 @@ def test_lambda_handler_aws_1_3():
     except Exception as e:
         print(e)
 
-    assert response is None
+    assert response["status"] == "ok"
 
 
 @mock_iam
@@ -64,4 +70,5 @@ def test_lambda_handler_aws_1_4():
     except Exception as e:
         print(e)
 
-    assert response is None
+    assert response["status"] == "ok"
+    assert len(response["messages"]) == NUM_ACCESS_KEYS

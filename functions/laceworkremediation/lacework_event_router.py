@@ -8,14 +8,14 @@ This function will route a Lacework event to the appropriate function for remedi
 import json
 import logging
 
-import iam.user_disable_login_profile
-import iam.user_disable_unused_access_key
+from laceworkremediation.iam import user_disable_login_profile
+from laceworkremediation.iam import user_disable_unused_access_key
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def remediate_event(event_details_data):
+def remediate_event(event_details_data, response):
     """
     A function to trigger the correct remediation based on the event details
     """
@@ -37,9 +37,9 @@ def remediate_event(event_details_data):
                 # Trigger the remediation
                 logger.info(f"Response triggered for {resource}")
                 if resource_reason == "AWS_CIS_1_3_PasswordNotUsed":
-                    iam.user_disable_login_profile.run_action(resource_arn)
+                    user_disable_login_profile.run_action(resource_arn, response)
                 if resource_reason == "AWS_CIS_1_3_AccessKey1NotUsed":
-                    iam.user_disable_unused_access_key.run_action(resource_arn)
+                    user_disable_unused_access_key.run_action(resource_arn, response)
 
         # Check to see if this is recommendation AWS_CIS_1_4
         elif recommendation_id == "AWS_CIS_1_4":
@@ -53,13 +53,16 @@ def remediate_event(event_details_data):
                 # Trigger the remediation
                 logger.info(f"Response triggered for {resource}")
                 if resource_reason == "AWS_CIS_1_4_AccessKey1NotRotated":
-                    iam.user_disable_unused_access_key.run_action(resource_arn)
+                    user_disable_unused_access_key.run_action(resource_arn, response)
 
         else:
-            logger.info(f"Received event has no remediation: {recommendation}")
+            message = f"Received event has no remediation: {recommendation}"
+            logger.info(message)
+            response["status"] = "ok"
+            response["messages"].append(message)
 
 
-def validate_event(event):
+def validate_event(event, response):
     """
     A function to route the Lacework event to the appropriate remediation
     """
@@ -73,12 +76,16 @@ def validate_event(event):
         for event_details_data in event_details:
             # Make sure the event was an AWS complinace event
             if event_details_data["EVENT_MODEL"] == "AwsCompliance":
-                remediate_event(event_details_data)
+                # Attempt to remediate the event
+                remediate_event(event_details_data, response)
             else:
-                logger.warning("Received event was not an 'AwsCompliance' event.")
+                message = "Received event was not an 'AwsCompliance' event."
+                logger.info(message)
+                response["messages"].append(message)
     else:
-        logger.warning("Received event was not a 'Compliance' event.")
-        return
+        message = "Received event was not a 'Compliance' event."
+        logger.info(message)
+        response["messages"].append(message)
 
 
 def event_handler(event, context):
@@ -88,6 +95,11 @@ def event_handler(event, context):
 
     logger.debug("## EVENT")
     logger.debug(event)
+
+    response = {
+        "status": "error",
+        "messages": []
+    }
 
     # Iterate through each record in the message
     for record in event.get("Records", []):
@@ -105,4 +117,7 @@ def event_handler(event, context):
             if type(record_details) is not dict:
                 record_details = json.loads(record_details)
 
-            validate_event(record_details)
+            # Validate the event before sending to remediation
+            validate_event(record_details, response)
+
+            return response

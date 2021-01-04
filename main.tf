@@ -84,7 +84,7 @@ resource "aws_lambda_function" "event_router" {
   filename         = data.archive_file.lambda_app.output_path
   source_code_hash = data.archive_file.lambda_app.output_base64sha256
 
-  handler = "lacework_event_router.event_handler"
+  handler = "laceworkremediation.lacework_event_router.event_handler"
   runtime = "python3.8"
 
   role = aws_iam_role.lambda_execution.arn
@@ -187,7 +187,8 @@ EOF
 data "archive_file" "lambda_app" {
   type        = "zip"
   output_path = "/tmp/lambda_app.zip"
-  source_dir  = "functions"
+  source_dir  = "./functions/"
+  excludes    = ["tests"]
 }
 
 # Create a Lacework Alert Channel to send events to EventBridge
