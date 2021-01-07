@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Tests for Lacework Event Router.
+IAM tests for Lacework Event Router.
 """
 
 import boto3
@@ -9,9 +9,9 @@ from laceworkremediation.lacework_event_router import event_handler
 
 from moto import mock_iam
 from tests.test_event_data import (
-  test_compliance_event_no_action,
-  test_compliance_event_aws_1_3,
-  test_compliance_event_aws_1_4
+    test_compliance_event_no_action,
+    test_compliance_event_aws_1_3,
+    test_compliance_event_aws_1_4
 )
 
 NUM_ACCESS_KEYS = 20

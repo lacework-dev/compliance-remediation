@@ -155,6 +155,29 @@ resource "aws_iam_role_policy" "lambda_sqs_policy" {
 EOF
 }
 
+# Allow the Lambda Function to change EC2 resources
+resource "aws_iam_role_policy" "lambda_ec2_policy" {
+  name = "lacework_remediation_ec2_access"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:StopInstances",
+        "ec2:TerminateInstances"
+      ],
+      "Effect": "Allow",
+      "Resource": "*",
+      "Sid": "LambdaAccessEC2"
+    }
+  ]
+}
+EOF
+}
+
 # Allow the Lambda Function to change IAM users
 resource "aws_iam_role_policy" "lambda_iam_policy" {
   name = "lacework_remediation_iam_access"

@@ -8,8 +8,13 @@ This function will route a Lacework event to the appropriate function for remedi
 import json
 import logging
 
-from laceworkremediation.iam import user_disable_login_profile
-from laceworkremediation.iam import user_disable_unused_access_key
+from laceworkremediation.iam import (
+    user_disable_login_profile,
+    user_disable_unused_access_key
+)
+from laceworkremediation.ec2 import (
+    stop_instance
+)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -54,6 +59,20 @@ def remediate_event(event_details_data, response):
                 logger.info(f"Response triggered for {resource}")
                 if resource_reason == "AWS_CIS_1_4_AccessKey1NotRotated":
                     user_disable_unused_access_key.run_action(resource_arn, response)
+
+        # Check to see if this is recommendation LW_AWS_GENERAL_SECURITY_1
+        elif recommendation_id == "LW_AWS_GENERAL_SECURITY_1":
+
+            # For each new violation, run the remediation
+            for resource in event_details_data["ENTITY_MAP"]["NewViolation"]:
+
+                resource_arn = resource.get("RESOURCE")
+                resource_reason = resource.get("REASON")
+
+                # Trigger the remediation
+                logger.info(f"Response triggered for {resource}")
+                if resource_reason == "LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags":
+                    stop_instance.run_action(resource_arn, response)
 
         else:
             message = f"Received event has no remediation: {recommendation}"
