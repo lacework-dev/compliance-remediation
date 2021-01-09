@@ -20,7 +20,24 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def remediate_event(event_details_data, response):
+def trigger_remediation(reason, remediation_function, event_details_data, response):
+    """
+    A function to trigger the appropriate remediation
+    """
+
+    # Iterate through all new violation resources
+    for resource in event_details_data["ENTITY_MAP"]["NewViolation"]:
+
+        resource_arn = resource.get("RESOURCE")
+        resource_reason = resource.get("REASON")
+
+        # Trigger the remediation
+        logger.info(f"Response triggered for {resource}")
+        if resource_reason == reason:
+            remediation_function(resource_arn, response)
+
+
+def select_remediation(event_details_data, response):
     """
     A function to trigger the correct remediation based on the event details
     """
@@ -32,47 +49,32 @@ def remediate_event(event_details_data, response):
 
         # Check to see if this is recommendation AWS_CIS_1_3
         if recommendation_id == "AWS_CIS_1_3":
-
-            # For each new violation, run the remediation
-            for resource in event_details_data["ENTITY_MAP"]["NewViolation"]:
-
-                resource_arn = resource.get("RESOURCE")
-                resource_reason = resource.get("REASON")
-
-                # Trigger the remediation
-                logger.info(f"Response triggered for {resource}")
-                if resource_reason == "AWS_CIS_1_3_PasswordNotUsed":
-                    user_disable_login_profile.run_action(resource_arn, response)
-                if resource_reason == "AWS_CIS_1_3_AccessKey1NotUsed":
-                    user_disable_unused_access_key.run_action(resource_arn, response)
+            # If the password hasn't been used, disable it
+            trigger_remediation("AWS_CIS_1_3_PasswordNotUsed",
+                                user_disable_login_profile.run_action,
+                                event_details_data,
+                                response)
+            # If the access key hasn't been used, disable it
+            trigger_remediation("AWS_CIS_1_3_AccessKey1NotUsed",
+                                user_disable_unused_access_key.run_action,
+                                event_details_data,
+                                response)
 
         # Check to see if this is recommendation AWS_CIS_1_4
         elif recommendation_id == "AWS_CIS_1_4":
-
-            # For each new violation, run the remediation
-            for resource in event_details_data["ENTITY_MAP"]["NewViolation"]:
-
-                resource_arn = resource.get("RESOURCE")
-                resource_reason = resource.get("REASON")
-
-                # Trigger the remediation
-                logger.info(f"Response triggered for {resource}")
-                if resource_reason == "AWS_CIS_1_4_AccessKey1NotRotated":
-                    user_disable_unused_access_key.run_action(resource_arn, response)
+            # If the access key hasn't been rotated, disable it
+            trigger_remediation("AWS_CIS_1_4_AccessKey1NotRotated",
+                                user_disable_unused_access_key.run_action,
+                                event_details_data,
+                                response)
 
         # Check to see if this is recommendation LW_AWS_GENERAL_SECURITY_1
         elif recommendation_id == "LW_AWS_GENERAL_SECURITY_1":
-
-            # For each new violation, run the remediation
-            for resource in event_details_data["ENTITY_MAP"]["NewViolation"]:
-
-                resource_arn = resource.get("RESOURCE")
-                resource_reason = resource.get("REASON")
-
-                # Trigger the remediation
-                logger.info(f"Response triggered for {resource}")
-                if resource_reason == "LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags":
-                    stop_instance.run_action(resource_arn, response)
+            # If the EC2 instance has no tags, stop it
+            trigger_remediation("LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags",
+                                stop_instance.run_action,
+                                event_details_data,
+                                response)
 
         else:
             message = f"Received event has no remediation: {recommendation}"
@@ -96,7 +98,7 @@ def validate_event(event, response):
             # Make sure the event was an AWS complinace event
             if event_details_data["EVENT_MODEL"] == "AwsCompliance":
                 # Attempt to remediate the event
-                remediate_event(event_details_data, response)
+                select_remediation(event_details_data, response)
             else:
                 message = "Received event was not an 'AwsCompliance' event."
                 logger.info(message)
