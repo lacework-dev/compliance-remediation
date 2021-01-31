@@ -15,6 +15,7 @@ Terraform module for remediating common non-compliant resources in AWS as detect
 | lacework_resource_prefix | The name prefix to use for resources provisioned by the module | `string` | "lacework-remediation" | no |
 | lambda_function_name | The desired name of the Lacework event router lambda function | `string` | "" | no |
 | lambda_role_name | The desired IAM role name for the Lacework remediation lambda function | `string` | "" | no |
+| remediation_map | A map of Lacework violation reasons to remediation functions | `map(string)` | <code>{<br>&nbsp;"AWS_CIS_1_3_PasswordNotUsed":"iam_disable_login_profile",<br>&nbsp;"AWS_CIS_1_3_AccessKey1NotUsed":"iam_disable_unused_access_key",<br>&nbsp;"AWS_CIS_1_4_AccessKey1NotRotated":"iam_disable_unused_access_key",<br>&nbsp;"LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags":"ec2_stop_instance"<br>}</code> | no |
 | sqs_queue_name | The desired name of the SQS event queue | `string` | "" | no |
 
 ## Outputs
