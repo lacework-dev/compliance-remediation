@@ -32,7 +32,6 @@ override.tf.json
 
 # Credentials Files
 **/credentials.json
-**/*.json
 
 # Local testing variables
 *.tfvars
@@ -46,6 +45,8 @@ override.tf.json
 
 # Byte-compiled / optimized files
 *.py[cod]
+
+**/tmp
 
 /.idea/
 .DS_Store

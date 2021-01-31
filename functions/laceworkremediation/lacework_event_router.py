@@ -7,34 +7,34 @@ This function will route a Lacework event to the appropriate function for remedi
 
 import json
 import logging
+import os
 
-from laceworkremediation.iam import (
-    user_disable_login_profile,
-    user_disable_unused_access_key
-)
-from laceworkremediation.ec2 import (
-    stop_instance
-)
+from importlib import import_module
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# Config Paramters
+REMEDIATION_FILE = "remediations.json"
 
-def trigger_remediation(reason, remediation_function, event_details_data, response):
+
+def load_remediation_config():
     """
-    A function to trigger the appropriate remediation
+    A function to get the configured remediation actions
     """
 
-    # Iterate through all new violation resources
-    for resource in event_details_data["ENTITY_MAP"]["NewViolation"]:
+    config_path = os.path.dirname(__file__) + "/" + REMEDIATION_FILE
+    logger.info(f"Remediation config file: {config_path}")
 
-        resource_arn = resource.get("RESOURCE")
-        resource_reason = resource.get("REASON")
-
-        # Trigger the remediation
-        logger.info(f"Response triggered for {resource}")
-        if resource_reason == reason:
-            remediation_function(resource_arn, response)
+    # Check yto make sure the file exists
+    if os.path.isfile(config_path):
+        # Open the REMEDIATION_FILE and load it
+        with open(config_path, "r") as remediation_config:
+            return json.loads(remediation_config.read())
+    else:
+        message = "Remediation configuration not found, exiting."
+        logger.warn(message)
+        exit()
 
 
 def select_remediation(event_details_data, response):
@@ -42,45 +42,40 @@ def select_remediation(event_details_data, response):
     A function to trigger the correct remediation based on the event details
     """
 
-    # Iterate through each recommendation
-    for recommendation in event_details_data["ENTITY_MAP"]["RecId"]:
-        # Get the recommendation ID
-        recommendation_id = recommendation.get("REC_ID")
+    remediation_config = load_remediation_config()
 
-        # Check to see if this is recommendation AWS_CIS_1_3
-        if recommendation_id == "AWS_CIS_1_3":
-            # If the password hasn't been used, disable it
-            trigger_remediation("AWS_CIS_1_3_PasswordNotUsed",
-                                user_disable_login_profile.run_action,
-                                event_details_data,
-                                response)
-            # If the access key hasn't been used, disable it
-            trigger_remediation("AWS_CIS_1_3_AccessKey1NotUsed",
-                                user_disable_unused_access_key.run_action,
-                                event_details_data,
-                                response)
+    # If a remediation config was returned
+    if remediation_config:
 
-        # Check to see if this is recommendation AWS_CIS_1_4
-        elif recommendation_id == "AWS_CIS_1_4":
-            # If the access key hasn't been rotated, disable it
-            trigger_remediation("AWS_CIS_1_4_AccessKey1NotRotated",
-                                user_disable_unused_access_key.run_action,
-                                event_details_data,
-                                response)
+        # Iterate through all new violations
+        for resource in event_details_data["ENTITY_MAP"].get("NewViolation"):
 
-        # Check to see if this is recommendation LW_AWS_GENERAL_SECURITY_1
-        elif recommendation_id == "LW_AWS_GENERAL_SECURITY_1":
-            # If the EC2 instance has no tags, stop it
-            trigger_remediation("LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags",
-                                stop_instance.run_action,
-                                event_details_data,
-                                response)
+            resource_arn = resource.get("RESOURCE")
+            resource_reason = resource.get("REASON")
 
-        else:
-            message = f"Received event has no remediation: {recommendation}"
-            logger.info(message)
-            response["status"] = "ok"
-            response["messages"].append(message)
+            # Trigger the remediation
+            if resource_reason in remediation_config.keys():
+                logger.info(f"Response triggered for {resource}")
+                trigger_remediation(resource_arn, resource_reason, remediation_config, response)
+            else:
+                message = f"Received event has no remediation configured. Violation reason: {resource_reason}"
+                logger.info(message)
+                response["status"] = "ok"
+                response["messages"].append(message)
+
+
+def trigger_remediation(resource_arn, resource_reason, remediation_config, response):
+    """
+    A function to trigger the appropriate remediation
+    """
+
+    try:
+        remediation = import_module("laceworkremediation.remediations." + remediation_config[resource_reason])
+    except Exception as e:
+        message = f"Cannot import remediation module for {remediation_config[resource_reason]}. Error: {e}"
+        raise Exception(message)
+
+    remediation.run_action(resource_arn, response)
 
 
 def validate_event(event, response):

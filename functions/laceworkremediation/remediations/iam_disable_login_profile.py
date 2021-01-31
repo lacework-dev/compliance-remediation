@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Lacework Remediation: user_disable_login_profile.py
+Lacework Remediation: iam_disable_login_profile.py
 
 This function will delete the AWS Console Login Profile for a user.
 """

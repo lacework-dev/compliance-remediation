@@ -40,6 +40,17 @@ variable "lambda_role_name" {
   description = "The desired IAM role name for the Lacework remediation lambda function."
 }
 
+variable "remediation_map" {
+  type = map(string)
+  default = {
+    "AWS_CIS_1_3_PasswordNotUsed" : "iam_disable_login_profile",
+    "AWS_CIS_1_3_AccessKey1NotUsed" : "iam_disable_unused_access_key",
+    "AWS_CIS_1_4_AccessKey1NotRotated" : "iam_disable_unused_access_key",
+    "LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags" : "ec2_stop_instance"
+  }
+  description = "A map of Lacework violation reasons to remediation functions."
+}
+
 variable "sqs_queue_name" {
   type        = string
   default     = ""
