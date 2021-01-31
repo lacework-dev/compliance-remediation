@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Lacework Remediation: user_disable_unused_access_key.py
+Lacework Remediation: iam_disable_unused_access_key.py
 
 This function will disable any unused access keys for a user.
 """

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Lacework Remediation: terminate_instance.py
+Lacework Remediation: ec2_stop_instance.py
 
-This function will terminate an EC2 instance.
+This function will stop an EC2 instance.
 """
 
 import logging
@@ -15,7 +15,7 @@ logger = logging.getLogger()
 
 
 def run_action(entity, response):
-    logger.info("Initiating termination of EC2 instance.")
+    logger.info("Initiating stop of EC2 instance.")
 
     # Get the region for the resource
     region = entity.split(":")[3]
@@ -28,7 +28,7 @@ def run_action(entity, response):
         instance = entity.split(":")[5].replace("instance/", "")
 
         # Stop the instance
-        result = ec2.terminate_instances(InstanceIds=[instance])
+        result = ec2.stop_instances(InstanceIds=[instance])
 
         response_code = result["ResponseMetadata"]["HTTPStatusCode"]
 
@@ -38,8 +38,8 @@ def run_action(entity, response):
             logger.info(message)
             response["messages"].append(message)
         else:
-            # Log the successful termination
-            message = f"Instance '{instance}' was successfully terminated."
+            # Log the successful stop
+            message = f"Instance '{instance}' was successfully stopped."
             logger.info(message)
             response["status"] = "ok"
             response["messages"].append(message)

@@ -1,0 +1,6 @@
+{
+    "AWS_CIS_1_3_PasswordNotUsed": "iam_disable_login_profile",
+    "AWS_CIS_1_3_AccessKey1NotUsed": "iam_disable_unused_access_key",
+    "AWS_CIS_1_4_AccessKey1NotRotated": "iam_disable_unused_access_key",
+    "LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags": "ec2_stop_instance"
+}

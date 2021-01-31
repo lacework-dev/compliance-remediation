@@ -206,12 +206,28 @@ resource "aws_iam_role_policy" "lambda_iam_policy" {
 EOF
 }
 
+# Add remediation config file
+data "template_file" "remediation_map" {
+  template = <<JSON
+$${remediation_map_json}
+JSON
+  vars = {
+    remediation_map_json = jsonencode(var.remediation_map)
+  }
+}
+resource "local_file" "remediation_map" {
+  content  = data.template_file.remediation_map.rendered
+  filename = "${path.module}/functions/laceworkremediation/remediations.json"
+}
+
 # Zip the code for creating the Lambda Function
 data "archive_file" "lambda_app" {
   type        = "zip"
-  output_path = "/tmp/lambda_app.zip"
-  source_dir  = "./functions/"
+  output_path = "${path.module}/tmp/lambda_app.zip"
+  source_dir  = "${path.module}/functions/"
   excludes    = ["tests"]
+
+  depends_on = [local_file.remediation_map]
 }
 
 # Create a Lacework Alert Channel to send events to EventBridge
