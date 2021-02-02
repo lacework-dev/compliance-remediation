@@ -206,6 +206,38 @@ resource "aws_iam_role_policy" "lambda_iam_policy" {
 EOF
 }
 
+# Allow the Lambda Function to change S3
+resource "aws_iam_role_policy" "lambda_s3_policy" {
+  name = "lacework_remediation_s3_access"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "s3:CreateBucket",
+        "s3:DeleteBucketPolicy",
+        "s3:GetBucketAcl",
+        "s3:GetBucketPolicy",
+        "s3:HeadBucket",
+        "s3:PutBucketAcl",
+        "s3:PutBucketLogging",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutPublicAccessBlock"
+      ],
+      "Effect": "Allow",
+      "Resource": "*",
+      "Sid": "LambdaAccessS3"
+    }
+  ]
+}
+EOF
+}
+
 # Add remediation config file
 data "template_file" "remediation_map" {
   template = <<JSON

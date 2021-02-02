@@ -4,6 +4,7 @@ Tests for Lacework Event Router.
 """
 
 pytest_plugins = [
-    "tests.ec2.test_ec2",
-    "tests.iam.test_iam",
+    "tests.remediations.test_ec2",
+    "tests.remediations.test_iam",
+    "tests.remediations.test_s3",
 ]

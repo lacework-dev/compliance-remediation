@@ -11,6 +11,9 @@ from moto import mock_ec2
 from tests.test_event_data import (
     build_aws_gen_sec_1_event
 )
+from tests.utils import (
+    create_context
+)
 
 REGION = "us-west-1"
 
@@ -42,7 +45,7 @@ def test_lambda_handler_aws_gen_sec_1():
     event_string = build_aws_gen_sec_1_event(instance_id, REGION)
 
     try:
-        response = event_handler(event=event_string, context={})
+        response = event_handler(event=event_string, context=create_context())
     except Exception as e:
         print(e)
 

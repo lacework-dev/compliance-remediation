@@ -7,18 +7,16 @@ This function will delete the AWS Console Login Profile for a user.
 
 import logging
 
-import boto3
-
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
 
 
-def run_action(entity, response):
+def run_action(boto_session, entity, response):
     logger.info("Initiating removal of Login Profile.")
 
     # Create an IAM resource
-    iam = boto3.resource("iam")
+    iam = boto_session.resource("iam")
 
     try:
         # Get the username (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html)

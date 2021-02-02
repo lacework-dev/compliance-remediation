@@ -7,21 +7,19 @@ This function will terminate an EC2 instance.
 
 import logging
 
-import boto3
-
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
 
 
-def run_action(entity, response):
+def run_action(boto_session, entity, response):
     logger.info("Initiating termination of EC2 instance.")
 
     # Get the region for the resource
     region = entity.split(":")[3]
 
     # Create an EC2 client
-    ec2 = boto3.client("ec2", region_name=region)
+    ec2 = boto_session.client("ec2", region_name=region)
 
     try:
         # Get the instance ID (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html)

@@ -9,6 +9,10 @@ import json
 import logging
 import os
 
+import boto3
+
+# from botocore.exceptions import ClientError
+
 from importlib import import_module
 
 logger = logging.getLogger()
@@ -37,7 +41,7 @@ def load_remediation_config():
         exit()
 
 
-def select_remediation(event_details_data, response):
+def select_remediation(boto_session, event_details_data, response):
     """
     A function to trigger the correct remediation based on the event details
     """
@@ -56,7 +60,7 @@ def select_remediation(event_details_data, response):
             # Trigger the remediation
             if resource_reason in remediation_config.keys():
                 logger.info(f"Response triggered for {resource}")
-                trigger_remediation(resource_arn, resource_reason, remediation_config, response)
+                trigger_remediation(boto_session, resource_arn, resource_reason, remediation_config, response)
             else:
                 message = f"Received event has no remediation configured. Violation reason: {resource_reason}"
                 logger.info(message)
@@ -64,7 +68,7 @@ def select_remediation(event_details_data, response):
                 response["messages"].append(message)
 
 
-def trigger_remediation(resource_arn, resource_reason, remediation_config, response):
+def trigger_remediation(boto_session, resource_arn, resource_reason, remediation_config, response):
     """
     A function to trigger the appropriate remediation
     """
@@ -75,12 +79,12 @@ def trigger_remediation(resource_arn, resource_reason, remediation_config, respo
         message = f"Cannot import remediation module for {remediation_config[resource_reason]}. Error: {e}"
         raise Exception(message)
 
-    remediation.run_action(resource_arn, response)
+    remediation.run_action(boto_session, resource_arn, response)
 
 
-def validate_event(event, response):
+def validate_event(boto_session, event, response):
     """
-    A function to route the Lacework event to the appropriate remediation
+    A function to validate that the event is an 'AwsCompliance' event, then trigger remediations.
     """
 
     # Make sure the event is a compliance event
@@ -90,10 +94,10 @@ def validate_event(event, response):
 
         # Iterate through all event details
         for event_details_data in event_details:
-            # Make sure the event was an AWS complinace event
+            # Make sure the event was an AWS compliance event
             if event_details_data["EVENT_MODEL"] == "AwsCompliance":
-                # Attempt to remediate the event
-                select_remediation(event_details_data, response)
+                # Send the event to remediation
+                select_remediation(boto_session, event_details_data, response)
             else:
                 message = "Received event was not an 'AwsCompliance' event."
                 logger.info(message)
@@ -123,6 +127,10 @@ def event_handler(event, context):
         logger.info("## RECORD BODY")
         logger.info(record)
 
+        # Get the AWS account and region
+        record_account = record.get("body", {}).get("account")
+        record_region = record.get("body", {}).get("region")
+
         # Get the record details if possible
         record_details = record.get("body", {}).get("detail")
 
@@ -133,7 +141,17 @@ def event_handler(event, context):
             if type(record_details) is not dict:
                 record_details = json.loads(record_details)
 
-            # Validate the event before sending to remediation
-            validate_event(record_details, response)
+            # If the resource is on another account, get the temporary credentials
+            self_account_id = context.invoked_function_arn.split(":")[4]
+            if record_account == self_account_id:
+                boto_session = boto3.Session(region_name=record_region)
+
+                # Validate the event before sending to remediation
+                validate_event(boto_session, record_details, response)
+            else:
+                # TODO: Set up cross-account role assumption
+                message = "Received event was not for this AWS account."
+                logger.info(message)
+                response["messages"].append(message)
 
             return response
