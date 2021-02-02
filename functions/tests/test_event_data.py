@@ -239,6 +239,216 @@ test_compliance_event_aws_1_4 = {
   ]
 }
 
+test_compliance_event_lw_s3_1 = {
+  "Records": [
+    {
+      "body": {
+        "version": "0",
+        "id": "48e59ac5-7652-6582-3d7e-35a2d47a905c",
+        "detail-type": "LaceworkEvents",
+        "source": "CUSTOMER_B85B4BB84EB15CC03BDDCF9D980E2C94603DC517D0357E8",
+        "account": "434813966438",
+        "time": "2020-10-13T21:25:28Z",
+        "region": "us-east-1",
+        "resources": [],
+        "detail": {
+          "EVENT_ID": "45332",
+          "EVENT_NAME": "New Violations",
+          "EVENT_TYPE": "NewViolations",
+          "START_TIME": "13 Oct 2020 20:00 GMT",
+          "EVENT_CATEGORY": "Compliance",
+          "EVENT_DETAILS": {
+            "data": [
+              {
+                "START_TIME": "2020-10-13T20:00:00Z",
+                "END_TIME": "2020-10-13T21:00:00Z",
+                "EVENT_MODEL": "AwsCompliance",
+                "EVENT_TYPE": "NewViolations",
+                "ENTITY_MAP": {
+                  "NewViolation": [
+                    {
+                      "REC_ID": "LW_S3_1",
+                      "REASON": "LW_S3_1_ReadAccessGranted",
+                      "RESOURCE": "arn:aws:s3:::lacework-remediation-test"
+                    }
+                  ],
+                  "Resource": [
+                    {
+                      "VALUE": "arn:aws:s3:::lacework-remediation-test",
+                      "NAME": "s3:bucket"
+                    }
+                  ],
+                  "ViolationReason": [
+                    {
+                      "REASON": "LW_S3_1_ReadAccessGranted",
+                      "REC_ID": "LW_S3_1"
+                    }
+                  ],
+                  "RecId": [
+                    {
+                      "REC_ID": "LW_S3_1",
+                      "EVAL_TYPE": "LW_SA",
+                      "EVAL_GUID": "d7d61ad043d44c36aa6a5ead8df05179",
+                      "ACCOUNT_ID": "950194951070",
+                      "ACCOUNT_ALIAS": "lacework-customerdemo",
+                      "TITLE": "Ensure the S3 bucket ACL does not grant 'Everyone' READ permission [list S3 objects]"
+                    }
+                  ]
+                },
+                "EVENT_ACTOR": "Compliance",
+                "EVENT_ID": "45332"
+              }
+            ]
+          },
+          "SEVERITY": 2,
+          "ACCOUNT": "CUSTOMERDEMO",
+          "SOURCE": "Compliance"
+        }
+      }
+    }
+  ]
+}
+
+test_compliance_event_lw_s3_13 = {
+  "Records": [
+    {
+      "body": {
+        "version": "0",
+        "id": "e927fc02-6d1e-f919-4836-4d39da90cb76",
+        "detail-type": "LaceworkEvents",
+        "source": "CUSTOMER_B85B4BB84EB15CC03BDDCF9D980E2C94603DC517D0357E8",
+        "account": "434813966438",
+        "time": "2020-08-26T20:47:07Z",
+        "region": "us-east-1",
+        "resources": [],
+        "detail": {
+          "EVENT_ID": "41324",
+          "EVENT_NAME": "New Violations",
+          "EVENT_TYPE": "NewViolations",
+          "START_TIME": "26 Aug 2020 19:00 GMT",
+          "EVENT_CATEGORY": "Compliance",
+          "EVENT_DETAILS": {
+            "data": [
+              {
+                "START_TIME": "2020-08-26T19:00:00Z",
+                "END_TIME": "2020-08-26T20:00:00Z",
+                "EVENT_MODEL": "AwsCompliance",
+                "EVENT_TYPE": "NewViolations",
+                "ENTITY_MAP": {
+                  "NewViolation": [
+                    {
+                      "REC_ID": "LW_S3_13",
+                      "REASON": "LW_S3_13_LoggingNotEnabled",
+                      "RESOURCE": "arn:aws:s3:::lacework-remediation-test"
+                    }
+                  ],
+                  "Resource": [
+                    {
+                      "VALUE": "arn:aws:s3:::lacework-remediation-test",
+                      "NAME": "s3:bucket"
+                    }
+                  ],
+                  "ViolationReason": [
+                    {
+                      "REASON": "LW_S3_13_LoggingNotEnabled",
+                      "REC_ID": "LW_S3_13"
+                    }
+                  ],
+                  "RecId": [
+                    {
+                      "REC_ID": "LW_S3_13",
+                      "EVAL_TYPE": "LW_SA",
+                      "EVAL_GUID": "9e163c08f05747199e9d0a81b509a2b4",
+                      "ACCOUNT_ID": "552339396365",
+                      "ACCOUNT_ALIAS": "lwcs-product",
+                      "TITLE": "Ensure the S3 bucket has access logging enabled"
+                    }
+                  ]
+                },
+                "EVENT_ACTOR": "Compliance",
+                "EVENT_ID": "41324"
+              }
+            ]
+          },
+          "SEVERITY": 4,
+          "ACCOUNT": "CUSTOMERDEMO",
+          "SOURCE": "Compliance"
+        }
+      }
+    }
+  ]
+}
+
+test_compliance_event_lw_s3_16 = {
+  "Records": [
+    {
+      "body": {
+        "version": "0",
+        "id": "517db2f8-c5ab-baf7-7883-3108db4f1612",
+        "detail-type": "LaceworkEvents",
+        "source": "CUSTOMER_B85B4BB84EB15CC03BDDCF9D980E2C94603DC517D0357E8",
+        "account": "434813966438",
+        "time": "2020-09-02T20:23:37Z",
+        "region": "us-east-1",
+        "resources": [],
+        "detail": {
+          "EVENT_ID": "42011",
+          "EVENT_NAME": "New Violations",
+          "EVENT_TYPE": "NewViolations",
+          "START_TIME": "02 Sep 2020 19:00 GMT",
+          "EVENT_CATEGORY": "Compliance",
+          "EVENT_DETAILS": {
+            "data": [
+              {
+                "START_TIME": "2020-09-02T19:00:00Z",
+                "END_TIME": "2020-09-02T20:00:00Z",
+                "EVENT_MODEL": "AwsCompliance",
+                "EVENT_TYPE": "NewViolations",
+                "ENTITY_MAP": {
+                  "NewViolation": [
+                    {
+                      "REC_ID": "LW_S3_16",
+                      "REASON": "LW_S3_16_VersioningNotEnabled",
+                      "RESOURCE": "arn:aws:s3:::lacework-remediation-test"
+                    }
+                  ],
+                  "Resource": [
+                    {
+                      "VALUE": "arn:aws:s3:::lacework-remediation-test",
+                      "NAME": "s3:bucket"
+                    }
+                  ],
+                  "ViolationReason": [
+                    {
+                      "REASON": "LW_S3_16_VersioningNotEnabled",
+                      "REC_ID": "LW_S3_16"
+                    }
+                  ],
+                  "RecId": [
+                    {
+                      "REC_ID": "LW_S3_16",
+                      "EVAL_TYPE": "LW_SA",
+                      "EVAL_GUID": "9e163c08f05747199e9d0a81b509a2b4",
+                      "ACCOUNT_ID": "552339396365",
+                      "ACCOUNT_ALIAS": "lwcs-product",
+                      "TITLE": "Ensure the S3 bucket has versioning enabled"
+                    }
+                  ]
+                },
+                "EVENT_ACTOR": "Compliance",
+                "EVENT_ID": "41324"
+              }
+            ]
+          },
+          "SEVERITY": 4,
+          "ACCOUNT": "CUSTOMERDEMO",
+          "SOURCE": "Compliance"
+        }
+      }
+    }
+  ]
+}
+
 
 def build_aws_gen_sec_1_event(instance_id, region):
     return {

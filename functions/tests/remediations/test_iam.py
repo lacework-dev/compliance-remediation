@@ -13,6 +13,9 @@ from tests.test_event_data import (
     test_compliance_event_aws_1_3,
     test_compliance_event_aws_1_4
 )
+from tests.utils import (
+    create_context
+)
 
 NUM_ACCESS_KEYS = 20
 
@@ -40,7 +43,7 @@ def create_user():
 def test_lambda_handler_no_action():
 
     try:
-        response = event_handler(event=test_compliance_event_no_action, context={})
+        response = event_handler(event=test_compliance_event_no_action, context=create_context())
     except Exception as e:
         print(e)
 
@@ -53,7 +56,7 @@ def test_lambda_handler_aws_1_3():
     create_user()
 
     try:
-        response = event_handler(event=test_compliance_event_aws_1_3, context={})
+        response = event_handler(event=test_compliance_event_aws_1_3, context=create_context())
     except Exception as e:
         print(e)
 
@@ -66,7 +69,7 @@ def test_lambda_handler_aws_1_4():
     create_user()
 
     try:
-        response = event_handler(event=test_compliance_event_aws_1_4, context={})
+        response = event_handler(event=test_compliance_event_aws_1_4, context=create_context())
     except Exception as e:
         print(e)
 

@@ -7,8 +7,6 @@ This function will disable any unused access keys for a user.
 
 import logging
 
-import boto3
-
 from botocore.exceptions import ClientError
 from datetime import datetime, timezone
 
@@ -17,7 +15,7 @@ logger = logging.getLogger()
 MAX_UNUSED_DAYS = 90
 
 
-def get_days_from_last_use(access_key, iam_client):
+def get_days_from_last_use(iam_client, access_key):
     # Get current time
     curr_time = datetime.now(timezone.utc)
 
@@ -36,11 +34,11 @@ def get_days_from_last_use(access_key, iam_client):
         return (curr_time - access_key["CreateDate"]).days
 
 
-def run_action(entity, response):
+def run_action(boto_session, entity, response):
     logger.info("Initiating deactivation of unused access keys.")
 
     # Create an IAM client
-    iam = boto3.client("iam")
+    iam = boto_session.client("iam")
 
     try:
         # Get the username (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html)
@@ -65,7 +63,7 @@ def run_action(entity, response):
                 access_key_id = access_key["AccessKeyId"]
 
                 # Calc the number of days since last use
-                days_from_last_use = get_days_from_last_use(access_key, iam)
+                days_from_last_use = get_days_from_last_use(iam, access_key)
 
                 # If the access key is not used for more than 90 days it will be deactivated
                 if days_from_last_use > MAX_UNUSED_DAYS:
