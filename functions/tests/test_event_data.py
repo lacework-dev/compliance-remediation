@@ -520,3 +520,75 @@ def build_aws_gen_sec_1_event(instance_id, region):
         }
       ]
     }
+
+
+def build_aws_gen_sec_quarantine(instance_id, region):
+    return {
+      "Records": [
+        {
+          "body": {
+            "version": "0",
+            "id": "74feea2b-428d-3a1b-fd16-7dc6776d4d7b",
+            "detail-type": "LaceworkEvents",
+            "source": "CUSTOMER_B85B4BB84EB15CC03BDDCF9D980E2C94603DC517D0357E8",
+            "account": "434813966438",
+            "time": "2020-12-24T00:22:07Z",
+            "region": "us-east-1",
+            "resources": [],
+            "detail": {
+              "EVENT_ID": "52863",
+              "EVENT_NAME": "New Violations",
+              "EVENT_TYPE": "NewViolations",
+              "START_TIME": "23 Dec 2020 23:00 GMT",
+              "EVENT_CATEGORY": "Compliance",
+              "EVENT_DETAILS": {
+                "data": [
+                  {
+                    "START_TIME": "2020-12-23T23:00:00Z",
+                    "END_TIME": "2020-12-24T00:00:00Z",
+                    "EVENT_MODEL": "AwsCompliance",
+                    "EVENT_TYPE": "NewViolations",
+                    "ENTITY_MAP": {
+                      "NewViolation": [
+                        {
+                          "REC_ID": "LW_AWS_GENERAL_SECURITY_1",
+                          "REASON": "LW_AWS_GENERAL_SECURITY_1_Quarantine",
+                          "RESOURCE": f"arn:aws:ec2:{region}:950194951070:instance/{instance_id}"
+                        }
+                      ],
+                      "Resource": [
+                        {
+                          "VALUE": f"arn:aws:ec2:{region}:950194951070:instance/{instance_id}",
+                          "NAME": "ec2:instance"
+                        }
+                      ],
+                      "ViolationReason": [
+                        {
+                          "REASON": "LW_AWS_GENERAL_SECURITY_1_Quarantine",
+                          "REC_ID": "LW_AWS_GENERAL_SECURITY_1"
+                        }
+                      ],
+                      "RecId": [
+                        {
+                          "REC_ID": "LW_AWS_GENERAL_SECURITY_1",
+                          "EVAL_TYPE": "LW_SA",
+                          "EVAL_GUID": "ece5f2d5d75545e1aa5695d3b5511a9c",
+                          "ACCOUNT_ID": "950194951070",
+                          "ACCOUNT_ALIAS": "lacework-customerdemo",
+                          "TITLE": "Ec2 instance does not have any tags"
+                        }
+                      ]
+                    },
+                    "EVENT_ACTOR": "Compliance",
+                    "EVENT_ID": "52863"
+                  }
+                ]
+              },
+              "SEVERITY": 3,
+              "ACCOUNT": "CUSTOMERDEMO",
+              "SOURCE": "Compliance"
+            }
+          }
+        }
+      ]
+    }

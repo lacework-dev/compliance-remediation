@@ -3,6 +3,7 @@
     "AWS_CIS_1_3_PasswordNotUsed": "iam_disable_login_profile",
     "AWS_CIS_1_4_AccessKey1NotRotated": "iam_disable_unused_access_key",
     "LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags": "ec2_stop_instance",
+    "LW_AWS_GENERAL_SECURITY_1_Quarantine": "ec2_quarantine_instance",
     "LW_S3_1_ReadAccessGranted": "s3_delete_acls",
     "LW_S3_2_WriteAccessGranted": "s3_delete_acls",
     "LW_S3_13_LoggingNotEnabled": "s3_enable_access_logs",
