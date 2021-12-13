@@ -225,3 +225,11 @@ resource "lacework_alert_channel_aws_cloudwatch" "remediation_channel" {
   event_bus_arn   = aws_cloudwatch_event_bus.lacework_events.arn
   group_issues_by = "Events"
 }
+
+# Create a Lacework Alert Rule to send events to the Alert Channel
+resource "lacework_alert_rule" "remediation_rule" {
+  name             = var.lacework_integration_name
+  alert_channels   = [lacework_alert_channel_aws_cloudwatch.remediation_channel.id]
+  severities       = var.lacework_alert_rule_severities
+  event_categories = var.lacework_alert_rule_catagories
+}
