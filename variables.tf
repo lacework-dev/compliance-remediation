@@ -1,13 +1,25 @@
-variable "event_bus_name" {
+variable "event_bridge_bus_name" {
   type        = string
   default     = ""
   description = "The desired name of the EventBridge event bus."
 }
 
-variable "event_rule_name" {
+variable "event_bridge_rule_name" {
   type        = string
   default     = ""
   description = "The desired name of the EventBridge event rule."
+}
+
+variable "lacework_alert_rule_severities" {
+  type        = list(string)
+  default     = ["Critical", "High"]
+  description = "The severities of Lacework alerts that should be sent to the alert channel"
+}
+
+variable "lacework_alert_rule_catagories" {
+  type        = list(string)
+  default     = ["Compliance"]
+  description = "The catagories of Lacework alerts that should be sent to the alert channel"
 }
 
 variable "lacework_aws_account" {

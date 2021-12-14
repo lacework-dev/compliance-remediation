@@ -12,6 +12,61 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger()
 
 
+def get_instance_vpc(ec2_client, instance):
+    result = ec2_client.describe_instances(
+        InstanceIds=[instance]
+    )
+
+    if result["Reservations"]:
+        if result["Reservations"][0]["Instances"]:
+            return result["Reservations"][0]["Instances"][0]["VpcId"]
+
+
+def get_security_group(ec2_client, vpc_id):
+    result = ec2_client.describe_security_groups(
+        Filters=[
+            {
+                "Name": "group-name",
+                "Values": ["lacework-quarantine"]
+            },
+            {
+                "Name": "vpc-id",
+                "Values": [vpc_id]
+            }
+        ]
+    )
+
+    if result["SecurityGroups"]:
+        return result["SecurityGroups"][0]["GroupId"]
+
+
+def create_security_group(ec2_client, ec2_resource, vpc_id):
+    result = ec2_client.create_security_group(
+        Description="Lacework quarantine Security Group (Block All)",
+        GroupName="lacework-quarantine",
+        VpcId=vpc_id
+    )
+
+    quarantine_sg_id = result["GroupId"]
+
+    remove_default_outbound_access(ec2_resource, quarantine_sg_id)
+
+    return quarantine_sg_id
+
+
+def remove_default_outbound_access(ec2_resource, security_group_id):
+    quarantine_sg = ec2_resource.SecurityGroup(security_group_id)
+    quarantine_sg.revoke_egress(
+        GroupId=security_group_id,
+        IpPermissions=[
+            {
+                "IpProtocol": "-1",
+                "IpRanges": [{"CidrIp": "0.0.0.0/0"}]
+            }
+        ]
+    )
+
+
 def run_action(boto_session, entity, response):
     logger.info("Initiating blocking of traffic to/from EC2 instance.")
 
@@ -27,13 +82,7 @@ def run_action(boto_session, entity, response):
 
     # Get the Instance VPC
     try:
-        result = ec2_client.describe_instances(
-            InstanceIds=[instance]
-        )
-
-        if result["Reservations"]:
-            if result["Reservations"][0]["Instances"]:
-                vpc_id = result["Reservations"][0]["Instances"][0]["VpcId"]
+        vpc_id = get_instance_vpc(ec2_client, instance)
 
     except ClientError as e:
         message = f"Unexpected error: {e}"
@@ -43,47 +92,16 @@ def run_action(boto_session, entity, response):
 
     # Create a Quarantine Security Group
     try:
-        result = ec2_client.describe_security_groups(
-            Filters=[
-                {
-                    "Name": "group-name",
-                    "Values": ["lacework-quarantine"]
-                },
-                {
-                    "Name": "vpc-id",
-                    "Values": [vpc_id]
-                }
-            ]
-        )
+        quarantine_sg_id = get_security_group(ec2_client, vpc_id)
 
-        if result["SecurityGroups"]:
-            quarantine_sg_id = result["SecurityGroups"][0]["GroupId"]
-
+        if quarantine_sg_id:
             # Log the returned Security Group
             message = f"Existing quarantine Security Group: {quarantine_sg_id}"
             logger.info(message)
             response["messages"].append(message)
 
         else:
-            result = ec2_client.create_security_group(
-                Description="Lacework quarantine Security Group (Block All)",
-                GroupName="lacework-quarantine",
-                VpcId=vpc_id
-            )
-
-            quarantine_sg_id = result["GroupId"]
-
-            # Remove default outbound rule
-            quarantine_sg = ec2_resource.SecurityGroup(quarantine_sg_id)
-            quarantine_sg.revoke_egress(
-                GroupId=quarantine_sg_id,
-                IpPermissions=[
-                    {
-                        "IpProtocol": "-1",
-                        "IpRanges": [{"CidrIp": "0.0.0.0/0"}]
-                    }
-                ]
-            )
+            quarantine_sg_id = create_security_group(ec2_client, ec2_resource, vpc_id)
 
             # Log the created Security Group
             message = f"Created quarantine Security Group: {quarantine_sg_id}"

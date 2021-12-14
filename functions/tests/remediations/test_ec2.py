@@ -24,9 +24,14 @@ def create_instance(region):
 
     ec2 = boto3.resource("ec2", region_name=region)
 
+    # Get AMI ID
+    ec2_client = boto3.client("ec2", region)
+    image_response = ec2_client.describe_images()
+    image_id = image_response["Images"][0]["ImageId"]
+
     # Create a new EC2 instance
     instances = ec2.create_instances(
-        ImageId="ami-00b6a8a2bd28daf19",
+        ImageId=image_id,
         MinCount=1,
         MaxCount=2
     )

@@ -1,51 +1,17 @@
 locals {
-  event_bus_name       = length(var.event_bus_name) > 0 ? var.event_bus_name : "${var.lacework_resource_prefix}-event-bus-${random_id.uniq.hex}"
-  event_rule_name      = length(var.event_rule_name) > 0 ? var.event_rule_name : "${var.lacework_resource_prefix}-event-rule-${random_id.uniq.hex}"
-  lambda_function_name = length(var.lambda_function_name) > 0 ? var.lambda_function_name : "${var.lacework_resource_prefix}-function-${random_id.uniq.hex}"
-  lambda_role_name     = length(var.lambda_role_name) > 0 ? var.lambda_role_name : "${var.lacework_resource_prefix}-lambda-role-${random_id.uniq.hex}"
-  sqs_queue_name       = length(var.sqs_queue_name) > 0 ? var.sqs_queue_name : "${var.lacework_resource_prefix}-sqs-${random_id.uniq.hex}"
+  event_bridge_bus_name  = length(var.event_bridge_bus_name) > 0 ? var.event_bridge_bus_name : "${var.lacework_resource_prefix}-event-bus-${random_id.uniq.hex}"
+  event_bridge_rule_name = length(var.event_bridge_rule_name) > 0 ? var.event_bridge_rule_name : "${var.lacework_resource_prefix}-event-rule-${random_id.uniq.hex}"
+  lambda_function_name   = length(var.lambda_function_name) > 0 ? var.lambda_function_name : "${var.lacework_resource_prefix}-function-${random_id.uniq.hex}"
+  lambda_role_name       = length(var.lambda_role_name) > 0 ? var.lambda_role_name : "${var.lacework_resource_prefix}-lambda-role-${random_id.uniq.hex}"
 }
 
 resource "random_id" "uniq" {
   byte_length = 4
 }
 
-# Create an SQS Queue for Lacework events
-resource "aws_sqs_queue" "lacework_events" {
-  name = local.sqs_queue_name
-}
-
-# Assign a policy to the SQS Queue allowing EventBridge to send messages
-resource "aws_sqs_queue_policy" "lacework_policy" {
-  queue_url = aws_sqs_queue.lacework_events.id
-
-  policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Id": "sqspolicy",
-  "Statement": [
-    {
-      "Sid": "EventsToMyQueue",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "events.amazonaws.com"
-      },
-      "Action": "sqs:SendMessage",
-      "Resource": "${aws_sqs_queue.lacework_events.arn}",
-      "Condition": {
-        "ArnEquals": {
-          "aws:SourceArn": "${aws_cloudwatch_event_rule.lacework_events.arn}"
-        }
-      }
-    }
-  ]
-}
-POLICY
-}
-
 # Create a new event bus for Lacework events
 resource "aws_cloudwatch_event_bus" "lacework_events" {
-  name = local.event_bus_name
+  name = local.event_bridge_bus_name
 }
 
 # Grant permission to the Lacework AWS account to send events to the event bus
@@ -57,7 +23,7 @@ resource "aws_cloudwatch_event_permission" "lacework_events" {
 
 # Create an event rule for events that are sent by the Lacework account
 resource "aws_cloudwatch_event_rule" "lacework_events" {
-  name           = local.event_rule_name
+  name           = local.event_bridge_rule_name
   description    = "A rule pertaining to events created by Lacework"
   event_bus_name = aws_cloudwatch_event_bus.lacework_events.name
 
@@ -70,11 +36,12 @@ resource "aws_cloudwatch_event_rule" "lacework_events" {
 EOF
 }
 
-# Set the EventBridge target as the SQS queue
+# Set the EventBridge target as the Lambda function
 resource "aws_cloudwatch_event_target" "lacework_events" {
   event_bus_name = aws_cloudwatch_event_bus.lacework_events.name
   rule           = aws_cloudwatch_event_rule.lacework_events.name
-  arn            = aws_sqs_queue.lacework_events.arn
+  target_id      = "lambda"
+  arn            = aws_lambda_function.event_router.arn
 }
 
 # Create a Lambda Function for handling the events from Lacework
@@ -90,12 +57,13 @@ resource "aws_lambda_function" "event_router" {
   role = aws_iam_role.lambda_execution.arn
 }
 
-# Trigger the Lambda Function from items on the SQS Queue
-resource "aws_lambda_event_source_mapping" "lacework_events" {
-  event_source_arn = aws_sqs_queue.lacework_events.arn
-  function_name    = aws_lambda_function.event_router.arn
-
-  depends_on = [aws_iam_role_policy.lambda_sqs_policy]
+# Allow CloudWatch to invoke the Lambda function
+resource "aws_lambda_permission" "allow_cloudwatch_invocation" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.event_router.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.lacework_events.arn
 }
 
 # IAM role which dictates what other AWS services the Lambda function
@@ -120,26 +88,15 @@ resource "aws_iam_role" "lambda_execution" {
 EOF
 }
 
-# Allow the Lambda Function to read messages from the created SQS Queue
 # Allow the Lambda Function to write logs
-resource "aws_iam_role_policy" "lambda_sqs_policy" {
-  name = "lacework_remediation_sqs_log_access"
+resource "aws_iam_role_policy" "lambda_log_policy" {
+  name = "lacework_remediation_log_access"
   role = aws_iam_role.lambda_execution.id
 
   policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
-    {
-      "Action": [
-        "sqs:DeleteMessage",
-        "sqs:GetQueueAttributes",
-        "sqs:ReceiveMessage"
-      ],
-      "Effect": "Allow",
-      "Resource": "${aws_sqs_queue.lacework_events.arn}",
-      "Sid": "LambdaAccessSQS"
-    },
     {
       "Action": [
         "logs:CreateLogGroup",
@@ -263,8 +220,16 @@ data "archive_file" "lambda_app" {
 }
 
 # Create a Lacework Alert Channel to send events to EventBridge
-resource "lacework_alert_channel_aws_cloudwatch" "lacework_events" {
+resource "lacework_alert_channel_aws_cloudwatch" "remediation_channel" {
   name            = var.lacework_integration_name
   event_bus_arn   = aws_cloudwatch_event_bus.lacework_events.arn
   group_issues_by = "Events"
+}
+
+# Create a Lacework Alert Rule to send events to the Alert Channel
+resource "lacework_alert_rule" "remediation_rule" {
+  name             = var.lacework_integration_name
+  alert_channels   = [lacework_alert_channel_aws_cloudwatch.remediation_channel.id]
+  severities       = var.lacework_alert_rule_severities
+  event_categories = var.lacework_alert_rule_catagories
 }
