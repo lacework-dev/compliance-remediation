@@ -121,37 +121,37 @@ def event_handler(event, context):
         "messages": []
     }
 
-    # Iterate through each record in the message
-    for record in event.get("Records", []):
+    logger.info(type(event))
 
-        logger.info("## RECORD BODY")
-        logger.info(record)
+    # Parse the event
+    if type(event) is not dict:
+        event = json.loads(event)
 
-        # Get the AWS account and region
-        record_account = record.get("body", {}).get("account")
-        record_region = record.get("body", {}).get("region")
+    # Get the AWS account and region
+    event_account = event.get("account")
+    event_region = event.get("region")
 
-        # Get the record details if possible
-        record_details = record.get("body", {}).get("detail")
+    # Get the event details if possible
+    event_details = event.get("detail")
 
-        # If we got record details
-        if record_details:
+    # If we got event details
+    if event_details:
 
-            # Parse the record details
-            if type(record_details) is not dict:
-                record_details = json.loads(record_details)
+        # Parse the event details
+        if type(event_details) is not dict:
+            event_details = json.loads(event_details)
 
-            # If the resource is on another account, get the temporary credentials
-            self_account_id = context.invoked_function_arn.split(":")[4]
-            if record_account == self_account_id:
-                boto_session = boto3.Session(region_name=record_region)
+        # If the resource is on another account, get the temporary credentials
+        self_account_id = context.invoked_function_arn.split(":")[4]
+        if event_account == self_account_id:
+            boto_session = boto3.Session(region_name=event_region)
 
-                # Validate the event before sending to remediation
-                validate_event(boto_session, record_details, response)
-            else:
-                # TODO: Set up cross-account role assumption
-                message = "Received event was not for this AWS account."
-                logger.info(message)
-                response["messages"].append(message)
+            # Validate the event before sending to remediation
+            validate_event(boto_session, event_details, response)
+        else:
+            # TODO: Set up cross-account role assumption
+            message = "Received event was not for this AWS account."
+            logger.info(message)
+            response["messages"].append(message)
 
-            return response
+        return response
