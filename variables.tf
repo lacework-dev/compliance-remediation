@@ -46,6 +46,12 @@ variable "lambda_function_name" {
   description = "The desired name of the Lacework event router lambda function."
 }
 
+variable "lambda_log_retention" {
+  type        = number
+  default     = 30
+  description = "The number of days in which to retain logs for the remediation lambda"
+}
+
 variable "lambda_role_name" {
   type        = string
   default     = ""

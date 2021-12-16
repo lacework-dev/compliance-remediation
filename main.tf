@@ -57,6 +57,12 @@ resource "aws_lambda_function" "event_router" {
   role = aws_iam_role.lambda_execution.arn
 }
 
+# Set Log retention period
+resource "aws_cloudwatch_log_group" "event_router" {
+  name              = "/aws/lambda/${local.lambda_function_name}"
+  retention_in_days = var.lambda_log_retention
+}
+
 # Allow CloudWatch to invoke the Lambda function
 resource "aws_lambda_permission" "allow_cloudwatch_invocation" {
   statement_id  = "AllowExecutionFromCloudWatch"
