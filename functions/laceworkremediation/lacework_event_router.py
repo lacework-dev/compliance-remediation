@@ -15,8 +15,9 @@ import boto3
 
 from importlib import import_module
 
+LOGLEVEL = os.environ.get("LOGLEVEl", logging.INFO)
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(LOGLEVEL)
 
 # Config Paramters
 REMEDIATION_FILE = "remediations.json"
@@ -41,33 +42,6 @@ def load_remediation_config():
         exit()
 
 
-def select_remediation(boto_session, event_details_data, response):
-    """
-    A function to trigger the correct remediation based on the event details
-    """
-
-    remediation_config = load_remediation_config()
-
-    # If a remediation config was returned
-    if remediation_config:
-
-        # Iterate through all new violations
-        for resource in event_details_data["ENTITY_MAP"].get("NewViolation"):
-
-            resource_arn = resource.get("RESOURCE")
-            resource_reason = resource.get("REASON")
-
-            # Trigger the remediation
-            if resource_reason in remediation_config.keys():
-                logger.info(f"Response triggered for {resource}")
-                trigger_remediation(boto_session, resource_arn, resource_reason, remediation_config, response)
-            else:
-                message = f"Received event has no remediation configured. Violation reason: {resource_reason}"
-                logger.info(message)
-                response["status"] = "ok"
-                response["messages"].append(message)
-
-
 def trigger_remediation(boto_session, resource_arn, resource_reason, remediation_config, response):
     """
     A function to trigger the appropriate remediation
@@ -82,22 +56,67 @@ def trigger_remediation(boto_session, resource_arn, resource_reason, remediation
     remediation.run_action(boto_session, resource_arn, response)
 
 
-def validate_event(boto_session, event, response):
+def route_to_remediation(event_details_data, response):
+    """
+    A function to trigger the correct remediation based on the event details
+    """
+
+    remediation_config = load_remediation_config()
+
+    # If a remediation config was returned
+    if remediation_config:
+
+        self_account_id = boto3.client("sts").get_caller_identity().get("Account")
+        logger.info(self_account_id)
+
+        # Iterate through all new violations
+        for resource in event_details_data["ENTITY_MAP"].get("NewViolation"):
+
+            # Parse resource details
+            resource_arn = resource.get("RESOURCE")
+            resource_reason = resource.get("REASON")
+            resource_account_id = resource_arn.split(":")[4]
+            resource_region = resource_arn.split(":")[3] if resource_arn.split(":")[4] != "" else None
+
+            if resource_account_id == "" or resource_account_id == self_account_id:
+                boto_session = boto3.Session(region_name=resource_region)
+
+                # Trigger the remediation
+                if resource_reason in remediation_config.keys():
+                    logger.info(f"Response triggered for {resource}")
+                    trigger_remediation(boto_session, resource_arn, resource_reason, remediation_config, response)
+                else:
+                    message = f"Received event has no remediation configured. Violation reason: {resource_reason}"
+                    logger.info(message)
+                    response["status"] = "ok"
+                    response["messages"].append(message)
+
+            else:
+                # TODO: Set up cross-account role assumption
+                message = "Received event was not for this AWS account."
+                logger.info(message)
+                response["messages"].append(message)
+
+
+def validate_event_type(event, response):
     """
     A function to validate that the event is an 'AwsCompliance' event, then trigger remediations.
     """
 
     # Make sure the event is a compliance event
     if event.get("EVENT_CATEGORY") == "Compliance":
+
         # Try to get the event details
         event_details = event.get("EVENT_DETAILS", {}).get("data")
 
         # Iterate through all event details
         for event_details_data in event_details:
+
             # Make sure the event was an AWS compliance event
             if event_details_data["EVENT_MODEL"] == "AwsCompliance":
+
                 # Send the event to remediation
-                select_remediation(boto_session, event_details_data, response)
+                route_to_remediation(event_details_data, response)
             else:
                 message = "Received event was not an 'AwsCompliance' event."
                 logger.info(message)
@@ -127,10 +146,6 @@ def event_handler(event, context):
     if type(event) is not dict:
         event = json.loads(event)
 
-    # Get the AWS account and region
-    event_account = event.get("account")
-    event_region = event.get("region")
-
     # Get the event details if possible
     event_details = event.get("detail")
 
@@ -141,17 +156,7 @@ def event_handler(event, context):
         if type(event_details) is not dict:
             event_details = json.loads(event_details)
 
-        # If the resource is on another account, get the temporary credentials
-        self_account_id = context.invoked_function_arn.split(":")[4]
-        if event_account == self_account_id:
-            boto_session = boto3.Session(region_name=event_region)
-
-            # Validate the event before sending to remediation
-            validate_event(boto_session, event_details, response)
-        else:
-            # TODO: Set up cross-account role assumption
-            message = "Received event was not for this AWS account."
-            logger.info(message)
-            response["messages"].append(message)
+        # Validate the event before sending to remediation
+        validate_event_type(event_details, response)
 
         return response
