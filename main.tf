@@ -237,5 +237,5 @@ resource "lacework_alert_rule" "remediation_rule" {
   name             = var.lacework_integration_name
   alert_channels   = [lacework_alert_channel_aws_cloudwatch.remediation_channel.id]
   severities       = var.lacework_alert_rule_severities
-  event_categories = var.lacework_alert_rule_catagories
+  event_categories = var.lacework_alert_rule_categories
 }

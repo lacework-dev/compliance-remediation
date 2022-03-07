@@ -16,10 +16,10 @@ variable "lacework_alert_rule_severities" {
   description = "The severities of Lacework alerts that should be sent to the alert channel"
 }
 
-variable "lacework_alert_rule_catagories" {
+variable "lacework_alert_rule_categories" {
   type        = list(string)
   default     = ["Compliance"]
-  description = "The catagories of Lacework alerts that should be sent to the alert channel"
+  description = "The categories of Lacework alerts that should be sent to the alert channel"
 }
 
 variable "lacework_aws_account" {
