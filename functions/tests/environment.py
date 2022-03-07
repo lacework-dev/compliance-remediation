@@ -5,4 +5,4 @@ Test environment variables.
 
 import os
 
-AWS_ACCOUNT = os.getenv("AWS_ACCOUNT", default="434813966438")
+AWS_ACCOUNT = os.getenv("AWS_ACCOUNT", default="123456789012")

@@ -7,7 +7,7 @@ import boto3
 
 from laceworkremediation.lacework_event_router import event_handler
 
-from moto import mock_ec2
+from moto import mock_ec2, mock_sts
 from tests.test_event_data import (
     build_aws_gen_sec_1_event,
     build_aws_gen_sec_quarantine
@@ -42,6 +42,7 @@ def create_instance(region):
 
 
 @mock_ec2
+@mock_sts
 def test_lambda_handler_aws_gen_sec_1():
 
     # Create an EC2 Instance
@@ -59,6 +60,7 @@ def test_lambda_handler_aws_gen_sec_1():
 
 
 @mock_ec2
+@mock_sts
 def test_lambda_handler_aws_gen_sec_quarantine():
 
     # Create an EC2 Instance

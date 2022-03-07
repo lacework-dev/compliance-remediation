@@ -7,7 +7,7 @@ import boto3
 
 from laceworkremediation.lacework_event_router import event_handler
 
-from moto import mock_s3
+from moto import mock_s3, mock_sts
 from tests.test_event_data import (
     test_compliance_event_lw_s3_1,
     test_compliance_event_lw_s3_13,
@@ -40,6 +40,7 @@ def create_bucket_w_acl():
 
 
 @mock_s3
+@mock_sts
 def test_lambda_handler_lw_s3_1():
 
     # Create an S3 bucket with an ACL
@@ -59,6 +60,7 @@ def test_lambda_handler_lw_s3_1():
 
 
 @mock_s3
+@mock_sts
 def test_lambda_handler_lw_s3_1_canonical():
 
     # Create an S3 bucket
@@ -78,6 +80,7 @@ def test_lambda_handler_lw_s3_1_canonical():
 
 
 @mock_s3
+@mock_sts
 def test_lambda_handler_lw_s3_13():
 
     # Create an S3 bucket
@@ -92,6 +95,7 @@ def test_lambda_handler_lw_s3_13():
 
 
 @mock_s3
+@mock_sts
 def test_lambda_handler_lw_s3_16():
 
     # Create an S3 bucket

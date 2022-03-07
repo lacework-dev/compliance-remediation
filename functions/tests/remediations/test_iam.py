@@ -7,7 +7,7 @@ import boto3
 
 from laceworkremediation.lacework_event_router import event_handler
 
-from moto import mock_iam
+from moto import mock_iam, mock_sts
 from tests.test_event_data import (
     test_compliance_event_no_action,
     test_compliance_event_aws_1_3,
@@ -40,6 +40,7 @@ def create_user():
 
 
 @mock_iam
+@mock_sts
 def test_lambda_handler_no_action():
 
     try:
@@ -47,10 +48,11 @@ def test_lambda_handler_no_action():
     except Exception as e:
         print(e)
 
-    assert response["status"] == "ok"
+    assert response["status"] == "error"
 
 
 @mock_iam
+@mock_sts
 def test_lambda_handler_aws_1_3():
 
     create_user()
@@ -64,6 +66,7 @@ def test_lambda_handler_aws_1_3():
 
 
 @mock_iam
+@mock_sts
 def test_lambda_handler_aws_1_4():
 
     create_user()
