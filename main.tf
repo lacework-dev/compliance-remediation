@@ -204,16 +204,8 @@ EOF
 }
 
 # Add remediation config file
-data "template_file" "remediation_map" {
-  template = <<JSON
-$${remediation_map_json}
-JSON
-  vars = {
-    remediation_map_json = jsonencode(var.remediation_map)
-  }
-}
 resource "local_file" "remediation_map" {
-  content  = data.template_file.remediation_map.rendered
+  content  = templatefile("${path.module}/template.tftpl", { remediation_map_json = var.remediation_map })
   filename = "${path.module}/functions/laceworkremediation/remediations.json"
 }
 
