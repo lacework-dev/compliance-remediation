@@ -129,6 +129,8 @@ resource "aws_iam_role_policy" "lambda_ec2_policy" {
   "Statement": [
     {
       "Action": [
+        "ec2:DescribeSecurityGroups",
+        "ec2:RevokeSecurityGroupIngress",
         "ec2:StopInstances",
         "ec2:TerminateInstances"
       ],
@@ -202,16 +204,8 @@ EOF
 }
 
 # Add remediation config file
-data "template_file" "remediation_map" {
-  template = <<JSON
-$${remediation_map_json}
-JSON
-  vars = {
-    remediation_map_json = jsonencode(var.remediation_map)
-  }
-}
 resource "local_file" "remediation_map" {
-  content  = data.template_file.remediation_map.rendered
+  content  = templatefile("${path.module}/template.tftpl", { remediation_map_json = var.remediation_map })
   filename = "${path.module}/functions/laceworkremediation/remediations.json"
 }
 

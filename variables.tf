@@ -59,16 +59,39 @@ variable "lambda_role_name" {
 }
 
 variable "remediation_map" {
-  type = map(string)
   default = {
-    "AWS_CIS_1_3_AccessKey1NotUsed" : "iam_disable_unused_access_key",
-    "AWS_CIS_1_3_PasswordNotUsed" : "iam_disable_login_profile",
-    "AWS_CIS_1_4_AccessKey1NotRotated" : "iam_disable_unused_access_key",
-    "LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags" : "ec2_stop_instance",
-    "LW_S3_1_ReadAccessGranted" : "s3_delete_acls",
-    "LW_S3_2_WriteAccessGranted" : "s3_delete_acls",
-    "LW_S3_13_LoggingNotEnabled" : "s3_enable_access_logs",
-    "LW_S3_16_VersioningNotEnabled" : "s3_enable_versioning"
+    "AWS_CIS_1_3_AccessKey1NotUsed" : {
+      "action" : "iam_disable_unused_access_key"
+    },
+    "AWS_CIS_1_3_PasswordNotUsed" : {
+      "action" : "iam_disable_login_profile"
+    },
+    "AWS_CIS_1_4_AccessKey1NotRotated" : {
+      "action" : "iam_disable_unused_access_key"
+    },
+    "AWS_CIS_4_1_UnrestrictedAccess" : {
+      "action" : "sg_delete_inbound_rules_by_scope",
+      "params" : {
+        "port" : "22",
+        "protocol" : "tcp",
+        "scope" : "0.0.0.0/0"
+      }
+    },
+    "LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags" : {
+      "action" : "ec2_stop_instance"
+    },
+    "LW_S3_1_ReadAccessGranted" : {
+      "action" : "s3_delete_acls"
+    },
+    "LW_S3_2_WriteAccessGranted" : {
+      "action" : "s3_delete_acls"
+    },
+    "LW_S3_13_LoggingNotEnabled" : {
+      "action" : "s3_enable_access_logs"
+    },
+    "LW_S3_16_VersioningNotEnabled" : {
+      "action" : "s3_enable_versioning"
+    },
   }
   description = "A map of Lacework violation reasons to remediation functions."
 }

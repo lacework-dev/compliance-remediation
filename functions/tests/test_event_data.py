@@ -392,6 +392,72 @@ test_compliance_event_lw_s3_16 = {
 }
 
 
+def build_aws_cis_4_1_event(instance_id, region):
+    return {
+      "version": "0",
+      "id": "ee3ad432-51f5-551a-7a6a-8ecff3de387e",
+      "detail-type": "LaceworkEvents",
+      "source": "LWINTALA_8842BC85BD38C9112027361F20FA7575CC68410D30FC9A7",
+      "account": "434813966438",
+      "time": "2022-03-07T04:46:21Z",
+      "region": "us-east-1",
+      "resources": [],
+      "detail": {
+          "EVENT_ID": "5684",
+          "EVENT_NAME": "New Violations",
+          "EVENT_TYPE": "NewViolations",
+          "START_TIME": "07 Mar 2022 03:00 GMT",
+          "EVENT_CATEGORY": "Compliance",
+          "EVENT_DETAILS": {
+            "data": [
+                {
+                  "START_TIME": "2022-03-07T03:00:00Z",
+                  "END_TIME": "2022-03-07T04:00:00Z",
+                  "EVENT_MODEL": "AwsCompliance",
+                  "EVENT_TYPE": "NewViolations",
+                  "ENTITY_MAP": {
+                      "NewViolation": [
+                        {
+                            "REC_ID": "AWS_CIS_4_1",
+                            "REASON": "AWS_CIS_4_1_UnrestrictedAccess",
+                            "RESOURCE": f"arn:aws:ec2:{region}:123456789012:security-group/{instance_id}"
+                        }
+                      ],
+                      "Resource": [
+                        {
+                            "VALUE": f"arn:aws:ec2:{region}:123456789012:security-group/{instance_id}",
+                            "NAME": "ec2:security-group"
+                        }
+                      ],
+                      "ViolationReason": [
+                        {
+                            "REASON": "AWS_CIS_4_1_UnrestrictedAccess",
+                            "REC_ID": "AWS_CIS_4_1"
+                        }
+                      ],
+                      "RecId": [
+                        {
+                            "REC_ID": "AWS_CIS_4_1",
+                            "EVAL_TYPE": "LW_SA",
+                            "EVAL_GUID": "40a4b2ce88334192a6aed16fee283f44",
+                            "ACCOUNT_ID": "123456789012",
+                            "ACCOUNT_ALIAS": "nixlab-prod",
+                            "TITLE": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22"
+                        }
+                      ]
+                  },
+                  "EVENT_ACTOR": "Compliance",
+                  "EVENT_ID": "5684"
+                }
+            ]
+          },
+          "SEVERITY": 2,
+          "ACCOUNT": "LWINT-ALANNIX",
+          "SOURCE": "Compliance"
+      }
+    }
+
+
 def build_aws_gen_sec_1_event(instance_id, region):
     return {
       "version": "0",
