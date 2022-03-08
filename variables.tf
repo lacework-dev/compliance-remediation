@@ -59,7 +59,6 @@ variable "lambda_role_name" {
 }
 
 variable "remediation_map" {
-  type = map(string)
   default = {
     "AWS_CIS_1_3_AccessKey1NotUsed" : {
       "action" : "iam_disable_unused_access_key"
