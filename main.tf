@@ -129,6 +129,8 @@ resource "aws_iam_role_policy" "lambda_ec2_policy" {
   "Statement": [
     {
       "Action": [
+        "ec2:DescribeSecurityGroups",
+        "ec2:RevokeSecurityGroupIngress",
         "ec2:StopInstances",
         "ec2:TerminateInstances"
       ],
