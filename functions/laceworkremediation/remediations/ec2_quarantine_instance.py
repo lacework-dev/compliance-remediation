@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Lacework Remediation: ec2_block_all_sg.py
+Lacework Remediation: ec2_quarantine_instance.py
 
 This function will block all traffic to/from an EC2 instance.
 """

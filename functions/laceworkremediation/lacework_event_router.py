@@ -15,7 +15,7 @@ import boto3
 
 from importlib import import_module
 
-LOGLEVEL = os.environ.get("LOGLEVEl", logging.INFO)
+LOGLEVEL = os.environ.get("LOGLEVEL", logging.INFO)
 logger = logging.getLogger()
 logger.setLevel(LOGLEVEL)
 
@@ -47,13 +47,23 @@ def trigger_remediation(boto_session, resource_arn, resource_reason, remediation
     A function to trigger the appropriate remediation
     """
 
+    kwargs = {}
+
     try:
-        remediation = import_module("laceworkremediation.remediations." + remediation_config[resource_reason])
+        remediation = import_module("laceworkremediation.remediations." + remediation_config[resource_reason]["action"])
+
+        if "params" in remediation_config[resource_reason].keys():
+            for key, value in remediation_config[resource_reason]["params"].items():
+                kwargs[key] = value
+
     except Exception as e:
-        message = f"Cannot import remediation module for {remediation_config[resource_reason]}. Error: {e}"
+        message = f"Cannot import remediation module for '{remediation_config[resource_reason]['action']}'. Error: {e}"
         raise Exception(message)
 
-    remediation.run_action(boto_session, resource_arn, response)
+    if len(kwargs) > 0:
+        remediation.run_action(boto_session, resource_arn, response, **kwargs)
+    else:
+        remediation.run_action(boto_session, resource_arn, response)
 
 
 def route_to_remediation(event_details_data, response):
@@ -70,7 +80,7 @@ def route_to_remediation(event_details_data, response):
         logger.info(self_account_id)
 
         # Iterate through all new violations
-        for resource in event_details_data["ENTITY_MAP"].get("NewViolation"):
+        for resource in event_details_data["ENTITY_MAP"].get("NewViolation", []):
 
             # Parse resource details
             resource_arn = resource.get("RESOURCE")
@@ -132,8 +142,8 @@ def event_handler(event, context):
     A function to receive the generated Lacework event.
     """
 
-    logger.debug("## EVENT")
-    logger.debug(event)
+    logger.info("## EVENT")
+    logger.info(event)
 
     response = {
         "status": "error",
