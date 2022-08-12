@@ -17,7 +17,7 @@ from tests.utils import (
     create_context
 )
 
-NUM_ACCESS_KEYS = 20
+NUM_ACCESS_KEYS = 2
 
 
 @mock_iam
