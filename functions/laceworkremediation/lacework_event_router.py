@@ -80,32 +80,41 @@ def route_to_remediation(event_details_data, response):
         logger.info(self_account_id)
 
         # Iterate through all new violations
+        isRemediationNeeded = False
         for resource in event_details_data["ENTITY_MAP"].get("NewViolation", []):
-
-            # Parse resource details
-            resource_arn = resource.get("RESOURCE")
+            # parse REASON
             resource_reason = resource.get("REASON")
-            resource_account_id = resource_arn.split(":")[4]
-            resource_region = resource_arn.split(":")[3] if resource_arn.split(":")[4] != "" else None
-
-            if resource_account_id == "" or resource_account_id == self_account_id:
-                boto_session = boto3.Session(region_name=resource_region)
-
-                # Trigger the remediation
-                if resource_reason in remediation_config.keys():
-                    logger.info(f"Response triggered for {resource}")
-                    trigger_remediation(boto_session, resource_arn, resource_reason, remediation_config, response)
-                else:
-                    message = f"Received event has no remediation configured. Violation reason: {resource_reason}"
-                    logger.info(message)
-                    response["status"] = "ok"
-                    response["messages"].append(message)
-
+            if resource_reason in remediation_config.keys():
+                    logger.info(f"Violation reason {resource_reason} is configured for remediation")
+                    isRemediationNeeded = True
             else:
-                # TODO: Set up cross-account role assumption
-                message = "Received event was not for this AWS account."
+                message = f"Violation reason {resource_reason} has no remediation configured"
                 logger.info(message)
-                response["messages"].append(message)
+
+        if isRemediationNeeded:
+
+            for resource in event_details_data["ENTITY_MAP"].get("Resource", []):
+
+                # Parse resource details
+                resource_arn = resource.get("VALUE")
+                resource_account_id = resource_arn.split(":")[4]
+                resource_region = resource_arn.split(":")[3] if resource_arn.split(":")[4] != "" else None
+
+                if resource_account_id == "" or resource_account_id == self_account_id:
+                    boto_session = boto3.Session(region_name=resource_region)
+
+                    # Trigger the remediation
+                    logger.info(f"Triggering remediation for {resource}")
+                    trigger_remediation(boto_session, resource_arn, resource_reason, remediation_config, response)
+
+                else:
+                    # TODO: Set up cross-account role assumption
+                    message = f"The resource {resource_arn} for the received event is not for this AWS account."
+                    logger.info(message)
+                    response["messages"].append(message)
+        else:
+            response["status"] = "ok"
+            response["messages"].append("No violation reasons in this event are configured for remediation!")
 
 
 def validate_event_type(event, response):
