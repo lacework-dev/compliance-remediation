@@ -9,19 +9,18 @@ Terraform module for remediating common non-compliant resources in AWS as detect
 | Name      | Version    |
 | --------- | ---------- |
 | terraform | >= 0.12.31 |
-| aws       | ~> 3.0     |
-| lacework  | ~> 0.2     |
+| aws       | ~> 5.0     |
+| lacework  | ~> 1.16     |
 
 ## Providers
 
 | Name     | Version |
 | -------- | ------- |
-| archive  | 2.2.0   |
-| aws      | 3.74.3  |
-| lacework | 0.16.0  |
-| local    | 2.1.0   |
-| random   | 3.1.0   |
-| template | 2.2.0   |
+| archive  | 2.4.0   |
+| aws      | 5.25.0  |
+| lacework | 1.17.0  |
+| local    | 2.4.0   |
+| random   | 3.5.0   |
 
 ## Resources
 
@@ -60,7 +59,8 @@ Terraform module for remediating common non-compliant resources in AWS as detect
 | lambda_function_name           | The desired name of the Lacework event router lambda function.             | `string`       | `""`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |    no    |
 | lambda_log_retention           | The number of days in which to retain logs for the remediation lambda      | `number`       | `30`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |    no    |
 | lambda_role_name               | The desired IAM role name for the Lacework remediation lambda function.    | `string`       | `""`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |    no    |
-| remediation_map                | A map of Lacework violation reasons to remediation functions.              | `map`          | <pre>{<br> "AWS_CIS_1_3_AccessKey1NotUsed": {<br> "action": "iam_disable_unused_access_key"<br> },<br> "AWS_CIS_1_3_PasswordNotUsed": {<br> "action": "iam_disable_login_profile"<br> },<br> "AWS_CIS_1_4_AccessKey1NotRotated": {<br> "action": "iam_disable_unused_access_key"<br> },<br> "AWS_CIS_4_1_UnrestrictedAccess": {<br> "action": "sg_delete_inbound_rules_by_scope",<br> "params": {<br> "port": "22",<br> "protocol": "tcp",<br> "scope": "0.0.0.0/0"<br> }<br> },<br> "LW_AWS_GENERAL_SECURITY_1_Ec2InstanceWithoutTags": {<br> "action": "ec2_stop_instance"<br> },<br> "LW_S3_13_LoggingNotEnabled": {<br> "action": "s3_enable_access_logs"<br> },<br> "LW_S3_16_VersioningNotEnabled": {<br> "action": "s3_enable_versioning"<br> },<br> "LW_S3_1_ReadAccessGranted": {<br> "action": "s3_delete_acls"<br> },<br> "LW_S3_2_WriteAccessGranted": {<br> "action": "s3_delete_acls"<br> }<br>}</pre> |    no    |
+| remediation_map                | A map of Lacework violation reasons to remediation functions.              | `map`          | <pre>{"lacework-global-120_AccessKey1NotUsed90Days":{"action":"iam_disable_unused_access_key"},"lacework-global-141_AccessKey1NotRotated180Days":{"action":"iam_disable_unused_access_key"},"lacework-global-142_AccessKey1NotRotated350Days":{"action":"iam_disable_unused_access_key"}}
+</pre> |    no    |
 | sqs_queue_name                 | The desired name of the SQS event queue.                                   | `string`       | `""`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |    no    |
 
 ## Outputs
