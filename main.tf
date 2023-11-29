@@ -5,6 +5,11 @@ locals {
   lambda_role_name       = length(var.lambda_role_name) > 0 ? var.lambda_role_name : "${var.lacework_resource_prefix}-lambda-role-${random_id.uniq.hex}"
 }
 
+provider "aws" {
+  region  = "us-east-1"
+  profile = "kathywantechsandbox"
+}
+
 resource "random_id" "uniq" {
   byte_length = 4
 }
@@ -231,5 +236,5 @@ resource "lacework_alert_rule" "remediation_rule" {
   name             = var.lacework_integration_name
   alert_channels   = [lacework_alert_channel_aws_cloudwatch.remediation_channel.id]
   severities       = var.lacework_alert_rule_severities
-  event_categories = var.lacework_alert_rule_categories
+  alert_subcategories = var.lacework_alert_rule_categories
 }

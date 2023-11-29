@@ -588,3 +588,86 @@ def build_aws_gen_sec_quarantine(instance_id, region):
         "SOURCE": "Compliance"
       }
     }
+
+def build_aws_compliance_event_lacework_global_120(instance_id, region):
+  return {
+    "version": "0",
+    "id": "6e266970-04cd-c788-d349-9a5b47bdcf0e",
+    "detail-type": "LaceworkEvents",
+    "source": "CUSTOMER_B85B4BB84EB15CC03BDDCF9D980E2C94603DC517D0357E8",
+    "account": "434813966438",
+    "time": "2023-10-23T05:00:00Z",
+    "region": "us-east-1",
+    "resources": [],
+    "detail": {
+      "EVENT_ID": "56631",
+      "EVENT_NAME": "New Violations",
+      "EVENT_TYPE": "NewViolations",
+      "START_TIME": "23 Oct 2020 05:00 GMT",
+      "EVENT_CATEGORY": "Compliance",
+      "EVENT_DETAILS": {
+        "data": [
+            {
+                "START_TIME": "2023-10-23T05:00:00Z",
+                "END_TIME": "2023-10-23T06:00:00Z",
+                "EVENT_MODEL": "AwsCompliance",
+                "EVENT_TYPE": "NewViolations",
+                "ENTITY_MAP": {
+                    "NewViolation": [
+                        {
+                            "REC_ID": "lacework-global-120",
+                            "REASON": "lacework-global-120_AccessKey1NotUsed90Days",
+                            "RESOURCE": "arn:aws:iam::991966387703:user/jenkins_sa",
+                            "NOTE": null
+                        }
+                    ],
+                    "Resource": [
+                        {
+                            "VALUE": "arn:aws:iam::991966387703:user/detc-cli",
+                            "NAME": "iam:user",
+                            "NOTE": null
+                        },
+                        {
+                            "VALUE": "arn:aws:iam::991966387703:user/jenkins_sa",
+                            "NAME": "iam:user",
+                            "NOTE": null
+                        },
+                        {
+                            "VALUE": "arn:aws:iam::991966387703:user/notmalicioususer",
+                            "NAME": "iam:user",
+                            "NOTE": null
+                        },
+                        {
+                            "VALUE": "arn:aws:iam::991966387703:user/shared-eks-viewer",
+                            "NAME": "iam:user",
+                            "NOTE": null
+                        }
+                    ],
+                    "ViolationReason": [
+                        {
+                            "REASON": "lacework-global-120_AccessKey1NotUsed90Days",
+                            "REC_ID": "lacework-global-120",
+                            "NOTE": null
+                        }
+                    ],
+                    "RecId": [
+                        {
+                            "REC_ID": "lacework-global-120",
+                            "EVAL_TYPE": "LW_SA",
+                            "EVAL_GUID": "76a167bd3bd2dfe9f92382588b2f8594_991966387703",
+                            "ACCOUNT_ID": "991966387703",
+                            "ACCOUNT_ALIAS": "",
+                            "TITLE": "Ensure active access keys are used every 90 days or less"
+                        }
+                    ]
+                },
+                "EVENT_ACTOR": "Compliance",
+                "EVENT_ID": "56631"
+            }
+        ]
+    },
+      "SEVERITY": 2,
+      "ACCOUNT": "CUSTOMERDEMO",
+      "SOURCE": "Compliance"
+    }
+}
